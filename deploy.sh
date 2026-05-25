@@ -35,7 +35,12 @@ EOF
 
 command -v sshpass >/dev/null 2>&1 || die "sshpass не установлен. apt install sshpass / brew install hudochenkov/sshpass/sshpass"
 command -v ssh >/dev/null 2>&1 || die "ssh не установлен."
-[[ -f "$SERVERS_FILE" ]] || die "Файл $SERVERS_FILE не найден."
+
+if [[ "$SERVERS_FILE" == "-" ]]; then
+  SERVERS_FILE=/dev/stdin
+elif [[ ! -f "$SERVERS_FILE" ]]; then
+  die "Файл $SERVERS_FILE не найден."
+fi
 
 mkdir -p "$LOG_DIR"
 
