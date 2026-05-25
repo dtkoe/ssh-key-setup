@@ -12,24 +12,34 @@ die()  { err "$*"; exit 1; }
 
 [[ ${EUID:-0} -eq 0 ]] || die "Нужно запускать от root."
 
-# Версии фиксированы под пример-ноду 152.53.105.236 (Debian 13 trixie).
-DOCKER_VER="5:29.2.1-1~debian.13~trixie"
-CONTAINERD_VER="2.2.1-1~debian.13~trixie"
-BUILDX_VER="0.31.1-1~debian.13~trixie"
-COMPOSE_VER="5.0.2-1~debian.13~trixie"
+# Эталон версий (как на пример-ноде 152.53.105.236).
+# Суффикс ~ID.VERSION_ID~CODENAME подбирается автоматически по /etc/os-release.
+DOCKER_BASE="29.2.1"
+CONTAINERD_BASE="2.2.1"
+BUILDX_BASE="0.31.1"
+COMPOSE_BASE="5.0.2"
 
 install_docker() {
   if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
     info "Docker уже установлен: $(docker --version), $(docker compose version)"
     return
   fi
-  info "Устанавливаю Docker (pinned)..."
+  . /etc/os-release
+  case "$ID" in
+    debian|ubuntu) ;;
+    *) die "Поддерживаются только debian/ubuntu, получено: $ID" ;;
+  esac
+  local suffix="~${ID}.${VERSION_ID}~${VERSION_CODENAME}"
+  local docker_ver="5:${DOCKER_BASE}-1${suffix}"
+  local containerd_ver="${CONTAINERD_BASE}-1${suffix}"
+  local buildx_ver="${BUILDX_BASE}-1${suffix}"
+  local compose_ver="${COMPOSE_BASE}-1${suffix}"
+
+  info "Устанавливаю Docker (pinned ${DOCKER_BASE} / compose ${COMPOSE_BASE}) для ${ID} ${VERSION_CODENAME}..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
   apt-get install -y -qq ca-certificates curl gnupg
   install -m 0755 -d /etc/apt/keyrings
-  . /etc/os-release
-  [[ "$VERSION_CODENAME" == "trixie" ]] || warn "Дистрибутив не trixie ($VERSION_CODENAME) — версии могут не совпасть."
   if [[ ! -s /etc/apt/keyrings/docker.asc ]]; then
     curl -fsSL "https://download.docker.com/linux/${ID}/gpg" -o /etc/apt/keyrings/docker.asc
     chmod a+r /etc/apt/keyrings/docker.asc
@@ -37,11 +47,11 @@ install_docker() {
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
   apt-get update -qq
   apt-get install -y -qq \
-    "docker-ce=${DOCKER_VER}" \
-    "docker-ce-cli=${DOCKER_VER}" \
-    "containerd.io=${CONTAINERD_VER}" \
-    "docker-buildx-plugin=${BUILDX_VER}" \
-    "docker-compose-plugin=${COMPOSE_VER}"
+    "docker-ce=${docker_ver}" \
+    "docker-ce-cli=${docker_ver}" \
+    "containerd.io=${containerd_ver}" \
+    "docker-buildx-plugin=${buildx_ver}" \
+    "docker-compose-plugin=${compose_ver}"
   apt-mark hold docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin >/dev/null
   systemctl enable --now docker
   info "Docker: $(docker --version), $(docker compose version)"
