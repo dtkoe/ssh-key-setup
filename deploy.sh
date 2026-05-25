@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SERVERS_FILE="${SERVERS_FILE:-servers.txt}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SERVERS_FILE="${SERVERS_FILE:-$SCRIPT_DIR/servers.txt}"
 PARALLEL="${PARALLEL:-4}"
 SCRIPT_URL="${SCRIPT_URL:-https://raw.githubusercontent.com/dtkoe/ssh-key-setup/main/add_ssh_key.sh}"
-LOG_DIR="${LOG_DIR:-./deploy_logs}"
+LOG_DIR="${LOG_DIR:-$SCRIPT_DIR/deploy_logs}"
 
 info() { printf "\033[1;32m[OK]\033[0m %s\n" "$*"; }
 warn() { printf "\033[1;33m[WARN]\033[0m %s\n" "$*"; }
