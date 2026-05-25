@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PUBKEY='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDqJ2UIV3JOZsU6AmAJoHDE0EnlZ3dfu3L7hAjtt41IB'
+PUBKEY='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIShyODyguzrHt3VvRfXZ+lou2Vc2LON4GswVNfWqAVG'
 
 info() { printf "\033[1;32m[OK]\033[0m %s\n" "$*"; }
 err()  { printf "\033[1;31m[ERR]\033[0m %s\n" "$*" >&2; }
